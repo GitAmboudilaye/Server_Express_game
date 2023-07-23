@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 //const bcrypt = require('bcryptjs');
-const User = require('../models/user');
+const Users = require('../models/user');
 const {sendMail} = require('../utils/senderTest');
 const { use } = require('../routes/auth');
 
@@ -14,20 +14,21 @@ exports.login =  async (req,res)=>{
     try {
         
         // checking if user exist
-        const user = await User.findOne({"email": email});
-        if (!user) {
+        const User = await Users.findOne({"email": email});
+        if (!User) {
             return res.send({ success: true, message: "Information is not correct" });
         }
 
         // Vérifie si le mot de passe est correct
-        const isMatch = await user.isMatchPassword(password);
+        const isMatch = await User.isMatchPassword(password);
 
         if (!isMatch) {
             return res.send({ 'success': false, 'message': 'Information is not find ///pwd' });
         }
         //keep user information in token
-        const token = user.getUserJwt()
-        return res.send({"success": true, "token":token});
+        const token = User.getUserJwt()
+        //"success": true, "token":token
+        return res.send({User});
         
     } catch (error) {
         return res.send({ success: false, message: error });
@@ -41,7 +42,7 @@ exports.register = async (req,res)=>{
     const { email, password, lastName, firstName } = req.body;
     try {
         // Vérifie si l'utilisateur existe
-        const user = await User.findOne({"email": email});
+        const user = await Users.findOne({"email": email});
         if ( user) {
             return res.send({ 'success': false, 'message': 'this user already exist' });
         }
@@ -96,9 +97,9 @@ exports.validate_email = async (req,res)=>{
             "password": decodeToken.user.password
         }
         // Vérifie si l'utilisateur existe
-        const user = await User.findOne({"email": email});
+        const user = await Users.findOne({"email": email});
         if(!user){
-            await User.create(filter);
+            await Users.create(filter);
         }
         
         //keep user information in token
